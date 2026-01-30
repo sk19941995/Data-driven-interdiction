@@ -34,7 +34,7 @@ public class Instance {
 		int number_of_fc;
 		
 		ArrayList<Double> mean = new ArrayList<Double>();	//mean of profits
-		ArrayList<Double> variance = new ArrayList<Double>(); //variance of profits
+		ArrayList<Double> std = new ArrayList<Double>(); //std of profits
 		ArrayList<Double> min_cost = new ArrayList<Double>(); //lower bounds	
 		ArrayList<Double> max_cost = new ArrayList<Double>(); //upper bounds
 		
@@ -95,17 +95,17 @@ public class Instance {
 		   {
 			     
 			     double mean_01 = 0.5*(i + 1)*1./(n + 1);
-			     double variance_01 = 0.05 + 0.4*(i + 1)*1./(n + 1);
+			     double std_01 = 0.05 + 0.4*(i + 1)*1./(n + 1);
 			     
 			     if (inverse == 1) 
 			     {
-			    	 variance_01 = 0.05 + (0.4 - variance_01);
+			    	 std_01 = 0.05 + (0.4 - 0.4*(i + 1)*1./(n + 1));
 			     }
 				 min_cost.add(lower_bound);
 				 max_cost.add(upper_bound);
 				 
 				 mean.add(lower_bound + (upper_bound - lower_bound)*mean_01);
-				 variance.add(Math.pow(upper_bound - lower_bound, 2.)*variance_01);
+				 std.add((upper_bound - lower_bound)*std_01);
 		   }
 			  
 		}
@@ -197,13 +197,13 @@ public class Instance {
 		   for (int i = 0; i < n; i++)
 		   {
 			     double mean_01 = 0.5*(i + 1)*1./(n + 1);
-			     double variance_01 = 0.02 + 0.4*(i + 1)*1./(n + 1);
+			     double std_01 = 0.05 + 0.4*(i + 1)*1./(n + 1);
 			     
 				 min_cost.add(lower_bound);
 				 max_cost.add(upper_bound);
 				 
 				 mean.add(lower_bound + (upper_bound - lower_bound)*mean_01);
-				 variance.add(Math.pow(upper_bound - lower_bound, 2.)*variance_01);
+				 std.add((upper_bound - lower_bound)*std_01);
 		   }
 			  
 		}	
@@ -295,7 +295,7 @@ public class Instance {
 		        
 		    	IloLinearNumExpr objective = cplex.linearNumExpr(); 
 		    	
-		    	if (type_of_risk_l == "Risk-averse")
+		    	if ("Risk-averse".equals(type_of_risk_l))
 		    	{   
 		    		objective.addTerm(1., t_l);
 		   
@@ -305,7 +305,7 @@ public class Instance {
 		        	}
 		    	}
 		    	
-		    	if (type_of_risk_l == "Risk-neutral")
+		    	if ("Risk-neutral".equals(type_of_risk_l))
 		    	{
 		    		for (int i = 0; i < I.number_of_items; i++)
 		    			objective.addTerm(average_l.get(i), y.get(i));
@@ -399,7 +399,7 @@ public class Instance {
 		    		}
 		   	    
 		    	//
-		    	if (type_of_risk_l == "Risk-averse")
+		    	if ("Risk-averse".equals(type_of_risk_l))
 		    	{   
 		    		for (int k = 0; k < k_l; k++)
 		    		{
@@ -424,7 +424,7 @@ public class Instance {
 		    	}
 		    	
 		    	//
-		    	if (type_of_risk_f == "Risk-averse")
+		    	if ("Risk-averse".equals(type_of_risk_f))
 		    	{   
 		    		for (int k = 0; k < k_f; k++)
 		    		{
@@ -455,7 +455,7 @@ public class Instance {
 		    	}
 		    	
 		    	//Dual constraints of the follower
-		    	if (type_of_risk_f == "Risk-averse")
+		    	if ("Risk-averse".equals(type_of_risk_f))
 		    	{
 		    		//
 			    	for (int i = 0; i < I.number_of_items; i++)
@@ -512,7 +512,7 @@ public class Instance {
 			    	cplex.addEq(str, 1.);
 		    	}
 		    	
-		    	if (type_of_risk_f == "Risk-neutral")
+		    	if ("Risk-neutral".equals(type_of_risk_f))
 		    	{   
 		    		//
 			    	for (int i = 0; i < I.number_of_items; i++)
@@ -564,15 +564,15 @@ public class Instance {
 			    	 }
 		    	}
 		    	
-		    	if (type_of_risk_f == "Risk-averse")
+		    	if ("Risk-averse".equals(type_of_risk_f))
 		    		cplex.addLe(str3, epsilon_f/(1. - alpha_f));
 		    	
-		    	if (type_of_risk_f == "Risk-neutral")
+		    	if ("Risk-neutral".equals(type_of_risk_f))
 		    		cplex.addLe(str3, epsilon_f);
 		    	
 		    	
 		    	//Strong duality
-		    	if (type_of_risk_f == "Risk-averse")
+		    	if ("Risk-averse".equals(type_of_risk_f))
 		    	{
 		    		IloLinearNumExpr str1 = cplex.linearNumExpr();
 		    		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -602,7 +602,7 @@ public class Instance {
 			    	cplex.addEq(str1, str2);
 		    	}
 		    	
-		    	if (type_of_risk_f == "Risk-neutral")
+		    	if ("Risk-neutral".equals(type_of_risk_f))
 		    	{
 		    		IloLinearNumExpr str1 = cplex.linearNumExpr();
 		    		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -693,40 +693,26 @@ public class Instance {
 		    return new ArrayList<ArrayList<Double>>();
 		}
 	
-	public static ArrayList<ArrayList<Double>> GenerateData(Instance I, int sample_size) 
+	public static ArrayList<ArrayList<Double>> GenerateData(Instance I, int sample_size, Random rand, int fixed) 
     {
-		//We assume that the cost of each arc is governed by a beta distribution with the mean G.mean and variance 1/64.
 		ArrayList<ArrayList<Double>> data = new ArrayList<ArrayList<Double>>();
+		
+		Random rng = (fixed == 0) ? new Random() : rand;
     	
     	for (int j = 0; j < I.number_of_items; j++)
     	{  
 	    	ArrayList<Double> samples = new ArrayList<Double>();
 	    	
-	    	/*double variance_01 = I.variance.get(j)/(Math.pow(I.max_cost.get(j) - I.min_cost.get(j), 2.));
 	    	double mean_01 = (I.mean.get(j) - I.min_cost.get(j))/(I.max_cost.get(j) - I.min_cost.get(j));
-	    		
-    		double alpha = mean_01*mean_01*(1. - mean_01)/variance_01 - mean_01;
-			double beta = alpha*(1./mean_01 - 1);
-    		
-	    	for (int k = 0; k < sample_size; k++)
-	    	{
-	    		BetaDistribution B = new BetaDistribution(alpha, beta);
-			    samples.add((I.max_cost.get(j) - I.min_cost.get(j))*B.sample() + I.min_cost.get(j));
-    		}*/
+    		double std_01 = I.std.get(j)/(I.max_cost.get(j) - I.min_cost.get(j));
 	    	
-	    	double mean_01 = (I.mean.get(j) - I.min_cost.get(j))/(I.max_cost.get(j) - I.min_cost.get(j));
-    		double variance_01 = I.variance.get(j)/(Math.pow(I.max_cost.get(j) - I.min_cost.get(j), 2.));
-	    	
-    		
 	    	for (int k = 0; k < sample_size; k++)
-	    	{
-	    		NormalDistribution N = new NormalDistribution(mean_01, variance_01);
-			    
+	    	{	    	
 	    		double sample = -1;
 	    		
 	    		while ((sample <= 0) || (sample >= 1))
 	    		{
-	    			sample = N.sample();
+	    			sample = mean_01 + std_01*rng.nextGaussian();
 	    		}
 	    		
 	    		samples.add((I.max_cost.get(j) - I.min_cost.get(j))*sample + I.min_cost.get(j));
@@ -954,7 +940,7 @@ public class Instance {
         
     	IloLinearNumExpr objective = cplex.linearNumExpr(); 
     	
-    	if (type_of_risk == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk))
     	{   
     		objective.addTerm(1., t_f);
     		objective.addTerm(-epsilon_f/(1 - alpha_f), lambda_f);
@@ -965,7 +951,7 @@ public class Instance {
         	}
     	}
     	
-    	if (type_of_risk == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk))
     	{
     		objective.addTerm(-epsilon_f, lambda_f);
     		
@@ -1028,7 +1014,7 @@ public class Instance {
     	    	cplex.addLe(str2, 0.);
     		}
    	    
-    	if (type_of_risk == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk))
     	{   
     		for (int k = 0; k < sample_size; k++)
     		{
@@ -1119,7 +1105,7 @@ public class Instance {
         
     	IloLinearNumExpr objective = cplex.linearNumExpr(); 
     	
-    	if (type_of_risk == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk))
     	{   
     		objective.addTerm(1., t_f);
     		objective.addTerm(-epsilon_f/(1 - alpha_f), lambda_f);
@@ -1130,7 +1116,7 @@ public class Instance {
         	}
     	}
     	
-    	if (type_of_risk == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk))
     	{
     		
     		double sum = 0;
@@ -1171,7 +1157,7 @@ public class Instance {
     	    	cplex.addLe(str2, 0.);
     		}
    	    
-    	if (type_of_risk == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk))
     	{   
     		for (int k = 0; k < sample_size; k++)
     		{
@@ -1253,7 +1239,7 @@ public class Instance {
       
     	IloLinearNumExpr objective = cplex.linearNumExpr(); 
     	
-    	if (type_of_risk == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk))
     	{   
     		objective.addTerm(1., t_f);
     		
@@ -1263,7 +1249,7 @@ public class Instance {
         	}
     	}
     	
-    	if (type_of_risk == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk))
     	{
     		
     		for (int i = 0; i < I.number_of_items; i++)
@@ -1298,7 +1284,7 @@ public class Instance {
     	}
     
     	
-    	if (type_of_risk == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk))
     	{   
     		for (int k = 0; k < sample_size; k++)
     		{
@@ -1354,7 +1340,7 @@ public class Instance {
 	public static Double SolveFollowersProblemFullInformationFixedY(IloCplex cplex, Instance I, ArrayList<Double> x, ArrayList<Double> y, double alpha_f, int sample_size, ArrayList<ArrayList<Double>> data_set,  ArrayList<ArrayList<Double>> support_constraints, String type_of_risk, ArrayList<Double> average_f,  double binary_indicator) {
 	try 
     {
-		if (type_of_risk == "Risk-neutral")
+		if ("Risk-neutral".equals(type_of_risk))
     	{
     		double sum = 0;
     		for (int i = 0; i < I.number_of_items; i++)
@@ -1383,7 +1369,7 @@ public class Instance {
     	
     	IloLinearNumExpr objective = cplex.linearNumExpr(); 
     	
-    	if (type_of_risk == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk))
     	{   
     		objective.addTerm(1., t_f);
     		
@@ -1395,7 +1381,7 @@ public class Instance {
     	
     	cplex.addMaximize(objective);
     	
-    	if (type_of_risk == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk))
     	{   
     		for (int k = 0; k < sample_size; k++)
     		{
@@ -1521,7 +1507,7 @@ public class Instance {
 	        
 	    	IloLinearNumExpr objective = cplex.linearNumExpr(); 
 	    	
-	    	if (type_of_risk_l == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_l))
 	    	{   
 	    		objective.addTerm(1., t_l);
 	   
@@ -1531,7 +1517,7 @@ public class Instance {
 	        	}
 	    	}
 	    	
-	    	if (type_of_risk_l == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_l))
 	    	{
 	    		for (int i = 0; i < I.number_of_items; i++)
 	    			objective.addTerm(average_l.get(i), y.get(i));
@@ -1609,7 +1595,7 @@ public class Instance {
 	    		}
 	   	    
 	    	//
-	    	if (type_of_risk_l == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_l))
 	    	{   
 	    		for (int k = 0; k < k_l; k++)
 	    		{
@@ -1634,7 +1620,7 @@ public class Instance {
 	    	}
 	    	
 	    	//
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{   
 	    		for (int k = 0; k < k_f; k++)
 	    		{
@@ -1665,7 +1651,7 @@ public class Instance {
 	    	}
 	    	
 	    	//Dual constraints of the follower
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{
 	    		//
 		    	for (int i = 0; i < I.number_of_items; i++)
@@ -1722,7 +1708,7 @@ public class Instance {
 		    	cplex.addEq(str, 1.);
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    	{   
 	    		//
 		    	for (int i = 0; i < I.number_of_items; i++)
@@ -1774,15 +1760,15 @@ public class Instance {
 		    	 }
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    		cplex.addLe(str3, epsilon_f/(1. - alpha_f));
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    		cplex.addLe(str3, epsilon_f);
 	    	
 	    	
 	    	//Strong duality 
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{
 	    		IloLinearNumExpr str1 = cplex.linearNumExpr();
 	    		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -1810,7 +1796,7 @@ public class Instance {
 		    	cplex.addEq(str1, str2);
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    	{
 	    		IloLinearNumExpr str1 = cplex.linearNumExpr();
 	    		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -1994,7 +1980,7 @@ public class Instance {
         
     	IloLinearNumExpr objective = cplex.linearNumExpr(); 
     	
-    	if (type_of_risk_l == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_l))
     	{   
     		objective.addTerm(1., t_l);
     		objective.addTerm(epsilon_l/(1. - alpha_l), lambda_l);
@@ -2005,7 +1991,7 @@ public class Instance {
         	}
     	}
     	
-    	if (type_of_risk_l == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk_l))
     	{
     		objective.addTerm(epsilon_l, lambda_l);
     		
@@ -2117,7 +2103,7 @@ public class Instance {
     		}
    	    
     	//
-    	if (type_of_risk_l == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_l))
     	{   
     		for (int k = 0; k < k_l; k++)
     		{
@@ -2148,7 +2134,7 @@ public class Instance {
     	}
     	
     	//
-    	if (type_of_risk_f == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_f))
     	{   
     		for (int k = 0; k < k_f; k++)
     		{
@@ -2180,7 +2166,7 @@ public class Instance {
     	}
     	
     	//Dual constraints of the follower
-    	if (type_of_risk_f == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_f))
     	{
     		//
 	    	for (int i = 0; i < I.number_of_items; i++)
@@ -2237,7 +2223,7 @@ public class Instance {
 	    	cplex.addEq(str, 1.);
     	}
     	
-    	if (type_of_risk_f == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk_f))
     	{   
     		
     		
@@ -2290,15 +2276,15 @@ public class Instance {
 	    	 }
     	}
     	
-    	if (type_of_risk_f == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_f))
     		cplex.addLe(str3, epsilon_f/(1. - alpha_f));
     	
-    	if (type_of_risk_f == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk_f))
     		cplex.addLe(str3, epsilon_f);
     	
     	
     	//Strong duality 
-    	if (type_of_risk_f == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_f))
     	{
     		IloLinearNumExpr str1 = cplex.linearNumExpr();
     		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -2326,7 +2312,7 @@ public class Instance {
 	    	cplex.addEq(str1, str2);
     	}
     	
-    	if (type_of_risk_f == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk_f))
     	{
     		IloLinearNumExpr str1 = cplex.linearNumExpr();
     		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -2676,7 +2662,7 @@ public class Instance {
 	        
 	    	IloLinearNumExpr objective = cplex.linearNumExpr(); 
 	    	
-	    	if (type_of_risk_l == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_l))
 	    	{   
 	    		objective.addTerm(-epsilon_l, lambda_l);
 	    		
@@ -2695,7 +2681,7 @@ public class Instance {
 	        	}
 	    	}
 	    	
-	    	if (type_of_risk_l == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_l))
 	    	{
 	    		objective.addTerm(-epsilon_l, lambda_l);
 	    		
@@ -2790,7 +2776,7 @@ public class Instance {
 	    		}
 	   	    	    		
 	    	//Dual constraints of the follower
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{
 	    		//
 		    	for (int i = 0; i < I.number_of_items; i++)
@@ -2827,7 +2813,7 @@ public class Instance {
 
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    	{   
 	    		//
 		    	for (int i = 0; i < I.number_of_items; i++)
@@ -2874,15 +2860,15 @@ public class Instance {
 		    	 }
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    		cplex.addLe(str3, epsilon_f);
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    		cplex.addLe(str3, epsilon_f);
 	    	
 	    	
 	    	//Strong duality 
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{
 	    		IloLinearNumExpr str1 = cplex.linearNumExpr();
 	    		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -2916,7 +2902,7 @@ public class Instance {
 		    	cplex.addEq(str1, str2);
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    	{
 	    		IloLinearNumExpr str1 = cplex.linearNumExpr();
 	    		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -3155,7 +3141,7 @@ public class Instance {
     		IloLinearNumExpr str = cplex.linearNumExpr(); 
         	str.addTerm(-1., z);
     		
-	    	if (type_of_risk_l == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_l))
 	    	{   
 	    		str.addTerm(1., t_l.get(r));
 	    		str.addTerm(epsilon_l/(1. - alpha_l), lambda_l.get(r));
@@ -3166,7 +3152,7 @@ public class Instance {
 	        	}
 	    	}
     	
-	    	if (type_of_risk_l == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_l))
 	    	{
 	    		str.addTerm(epsilon_l, lambda_l.get(r));
 	    		
@@ -3274,7 +3260,7 @@ public class Instance {
 	    		}
     	
 	    	//
-	    	if (type_of_risk_l == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_l))
 	    	{   
 	    		for (int k = 0; k < k_l; k++)
 	    		{
@@ -3305,7 +3291,7 @@ public class Instance {
 	    	}
 	    	
 	    	//
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{   
 	    		for (int k = 0; k < k_f; k++)
 	    		{
@@ -3336,7 +3322,7 @@ public class Instance {
 	    	}
 	    	
 	    	//Dual constraints of the follower
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{
 	    		//
 		    	for (int i = 0; i < I.number_of_items; i++)
@@ -3393,7 +3379,7 @@ public class Instance {
 		    	cplex.addEq(str, 1.);
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    	{   
 	    		//
 		    	for (int i = 0; i < I.number_of_items; i++)
@@ -3444,15 +3430,15 @@ public class Instance {
 		    	 }
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    		cplex.addLe(str3, epsilon_f/(1. - alpha_f));
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    		cplex.addLe(str3, epsilon_f);
 	    	
 	    	
 	    	//Strong duality 
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{
 	    		IloLinearNumExpr str1 = cplex.linearNumExpr();
 	    		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -3480,7 +3466,7 @@ public class Instance {
 		    	cplex.addEq(str1, str2);
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    	{
 	    		IloLinearNumExpr str1 = cplex.linearNumExpr();
 	    		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -3737,7 +3723,7 @@ public class Instance {
     		IloLinearNumExpr str = cplex.linearNumExpr(); 
         	str.addTerm(-1., z);
     		
-	    	if (type_of_risk_l == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_l))
 	    	{   
 	    		str.addTerm(1., t_l.get(r));
 	    		str.addTerm(epsilon_l/(1. - alpha_l), lambda_l.get(r));
@@ -3748,7 +3734,7 @@ public class Instance {
 	        	}
 	    	}
     	
-	    	if (type_of_risk_l == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_l))
 	    	{
 	    		str.addTerm(epsilon_l, lambda_l.get(r));
 	    		
@@ -3856,7 +3842,7 @@ public class Instance {
 	    		}
     	
 	    	//
-	    	if (type_of_risk_l == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_l))
 	    	{   
 	    		for (int k = 0; k < k_l; k++)
 	    		{
@@ -3887,7 +3873,7 @@ public class Instance {
 	    	}
 	    	
 	    	//
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{   
 	    		for (int k = 0; k < k_f; k++)
 	    		{
@@ -3918,7 +3904,7 @@ public class Instance {
 	    	}
 	    	
 	    	//Dual constraints of the follower
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{
 	    		//
 		    	for (int i = 0; i < I.number_of_items; i++)
@@ -3975,7 +3961,7 @@ public class Instance {
 		    	cplex.addEq(str, 1.);
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    	{   
 	    		//
 		    	for (int i = 0; i < I.number_of_items; i++)
@@ -4026,15 +4012,15 @@ public class Instance {
 		    	 }
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    		cplex.addLe(str3, epsilons_f.get(r)/(1. - alphas_f.get(r)));
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    		cplex.addLe(str3, epsilons_f.get(r));
 	    	
 	    	
 	    	//Strong duality 
-	    	if (type_of_risk_f == "Risk-averse")
+	    	if ("Risk-averse".equals(type_of_risk_f))
 	    	{
 	    		IloLinearNumExpr str1 = cplex.linearNumExpr();
 	    		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -4062,7 +4048,7 @@ public class Instance {
 		    	cplex.addEq(str1, str2);
 	    	}
 	    	
-	    	if (type_of_risk_f == "Risk-neutral")
+	    	if ("Risk-neutral".equals(type_of_risk_f))
 	    	{
 	    		IloLinearNumExpr str1 = cplex.linearNumExpr();
 	    		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -5082,7 +5068,7 @@ public class Instance {
         
     	IloLinearNumExpr objective = cplex.linearNumExpr(); 
     	
-    	if (type_of_risk_l == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_l))
     	{   
     		objective.addTerm(1., t_l);
     		objective.addTerm(epsilon_l/(1. - alpha_l), lambda_l);
@@ -5093,7 +5079,7 @@ public class Instance {
         	}
     	}
     	
-    	if (type_of_risk_l == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk_l))
     	{
     		objective.addTerm(epsilon_l, lambda_l);
     		
@@ -5180,7 +5166,7 @@ public class Instance {
     		}
    	    
     	//
-    	if (type_of_risk_l == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_l))
     	{   
     		for (int k = 0; k < k_l; k++)
     		{
@@ -5211,7 +5197,7 @@ public class Instance {
     	}
     	
     	//
-    	if (type_of_risk_f == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_f))
     	{   
     		for (int k = 0; k < k_f; k++)
     		{
@@ -5242,7 +5228,7 @@ public class Instance {
     	}
     	
     	//Dual constraints of the follower
-    	if (type_of_risk_f == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_f))
     	{
     		//
 	    	for (int i = 0; i < I.number_of_items; i++)
@@ -5300,7 +5286,7 @@ public class Instance {
 	    	cplex.addEq(str, 1.);
     	}
     	
-    	if (type_of_risk_f == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk_f))
     	{   
     		//
 	    	for (int i = 0; i < I.number_of_items; i++)
@@ -5352,15 +5338,15 @@ public class Instance {
 	    	 }
     	}
     	
-    	if (type_of_risk_f == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_f))
     		cplex.addLe(str3, epsilon_f/(1. - alpha_f));
     	
-    	if (type_of_risk_f == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk_f))
     		cplex.addLe(str3, epsilon_f);
     	
     	
     	////Feasibility
-    	if (type_of_risk_f == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk_f))
     	{
     		IloLinearNumExpr str1 = cplex.linearNumExpr();
     		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -5388,7 +5374,7 @@ public class Instance {
 	    	cplex.addEq(str1, str2);
     	}
     	
-    	if (type_of_risk_f == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk_f))
     	{
     		IloLinearNumExpr str1 = cplex.linearNumExpr();
     		IloLinearNumExpr str2 = cplex.linearNumExpr();
@@ -5619,7 +5605,7 @@ public class Instance {
     	//Constraints
     		
     	//Dual constraints of the follower
-    	if (type_of_risk == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk))
     	{
     		//
 	    	for (int i = 0; i < I.number_of_items; i++)
@@ -5676,7 +5662,7 @@ public class Instance {
 	    	cplex.addEq(str0, 1.);
     	}
     	
-    	if (type_of_risk == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk))
     	{   
     		//
 	    	for (int i = 0; i < I.number_of_items; i++)
@@ -5728,10 +5714,10 @@ public class Instance {
 	    	 }
     	}
     	
-    	if (type_of_risk == "Risk-averse")
+    	if ("Risk-averse".equals(type_of_risk))
     		cplex.addLe(str3, epsilon_f/(1. - alpha_f));
     	
-    	if (type_of_risk == "Risk-neutral")
+    	if ("Risk-neutral".equals(type_of_risk))
     		cplex.addLe(str3, epsilon_f);
     	
     	ArrayList<Double> y_opt = new ArrayList<Double>();
