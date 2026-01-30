@@ -56,11 +56,11 @@ public class Main {
 	        for (int i = 0; i < number_of_instances_1; i++)
 	        {
 	        	long instanceSeed = globalRandom.nextLong();
-	        	Random random = new Random(instanceSeed);
-	        
-	        	Instance I = new Instance(n, p, d_f, w_l, w_f, 0, random); 
-	        	Instance I_inv = new Instance(n, p, d_f, w_l, w_f, 1, random);
-	        	Instance I_u = new Instance(n, p, w_l, w_f, random);
+	        	
+	        	Instance I = new Instance(n, p, d_f, w_l, w_f, 0, new Random(instanceSeed)); 
+	        	Instance I_inv = new Instance(n, p, d_f, w_l, w_f, 1, new Random(instanceSeed));
+	        	Instance I_u = new Instance(n, p, w_l, w_f, new Random(instanceSeed));
+	        	
 	        	random_instances.put(i, I);
 	        	random_instances_inv.put(i, I_inv);
 	        	random_instances_u.put(i, I_u);
@@ -133,8 +133,8 @@ public class Main {
 		        	System.out.println(number_of_instance);	
 			        
 		        	//Generate data
-			        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all); 
-			        ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
+			        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all, null, 0); 
+			        ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l, null, 0); 
 			         
 			        //Compute delta_l and average_l
 			        ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I, data_set_l, support_constraints);   
@@ -305,7 +305,7 @@ public class Main {
 	        	 for (int l = 0; l < sample_sizes.length; l++)
 			    {
 			        k_f = sample_sizes[l];
-					printWriter.printf("k_f = %d : %.3f (%.2f) %.2f (%.2f) | %.3f (%.2f) %.2f (%.2f) \n", k_f, mean_loss1.get(num_param - 1), var_loss1.get(num_param - 1),
+					printWriter.printf("k_f = %d : %.3f (%.3f) %.2f (%.2f) | %.3f (%.3f) %.2f (%.2f) \n", k_f, mean_loss1.get(num_param - 1), var_loss1.get(num_param - 1),
 						 mean_time1.get(num_param - 1), var_time1.get(num_param - 1), mean_loss2.get(num_param - 1), var_loss2.get(num_param - 1),
 						 mean_time2.get(num_param - 1), var_time2.get(num_param - 1));			        
 					num_param++; 
@@ -354,9 +354,9 @@ public class Main {
 			        int number_of_instance = t1*number_of_instances_2 + t2 + 1;
 		        	System.out.println(number_of_instance);	
 			        
-			        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all); 
+			        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all, null, 0); 
 			        
-			        ArrayList<ArrayList<Double>> data_set_l_full = Instance.GenerateData(I, k_l_max); 
+			        ArrayList<ArrayList<Double>> data_set_l_full = Instance.GenerateData(I, k_l_max, null, 0); 
 			        ArrayList<ArrayList<Double>> delta_l_full = Instance.ComputeDelta(I, data_set_l_full, support_constraints);
 			           
 			        ArrayList<ArrayList<Double>> data_set_f = Instance.TakeSubsetColumns(data_set_l_full, I.number_of_items, k_f); 
@@ -541,7 +541,7 @@ public class Main {
 	        	 for (int l = 0; l < sample_sizes.length; l++)
 			     {
 			        k_l = sample_sizes[l];
-			        printWriter.printf("k_l = %d : %.3f (%.2f) %.2f (%.2f) | %.3f (%.2f) %.2f (%.2f) \n", k_l, mean_loss1.get(num_param - 1), var_loss1.get(num_param - 1),
+			        printWriter.printf("k_l = %d : %.3f (%.3f) %.2f (%.2f) | %.3f (%.3f) %.2f (%.2f) \n", k_l, mean_loss1.get(num_param - 1), var_loss1.get(num_param - 1),
 							 mean_time1.get(num_param - 1), var_time1.get(num_param - 1), mean_loss2.get(num_param - 1), var_loss2.get(num_param - 1),
 							 mean_time2.get(num_param - 1), var_time2.get(num_param - 1));		
 			        num_param++;
@@ -588,9 +588,9 @@ public class Main {
 			        int number_of_instance = t1*number_of_instances_2 + t2 + 1;
 		        	System.out.println(number_of_instance);	
 			        
-			        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all); 
+			        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all, null, 0); 
 			      
-			        ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
+			        ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l, null, 0); 
 			        ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I, data_set_l, support_constraints);
 			        ArrayList<Double> average_l = new ArrayList<Double>();
 			        
@@ -625,7 +625,6 @@ public class Main {
 			             epsilon_f = gamma/Math.sqrt(k_f);
 				        	
                          M1 = Math.max(I.number_of_items, 1 + epsilon_f/(1 - alpha_f));
-			             System.out.println(M1);
 			             
 			             double start = System.currentTimeMillis();
 							
@@ -750,7 +749,7 @@ public class Main {
 				    {
 	        		    double gamma = gammas[l];
 			        	num_param ++;
-			        	printWriter.printf("gamma = %.4f : %.2f (%.2f) %.2f (%.2f) | %.2f (%.2f) %.2f (%.2f) \n", gamma, mean_loss1.get(num_param - 1), var_loss1.get(num_param - 1),
+			        	printWriter.printf("gamma = %.4f : %.3f (%.3f) %.2f (%.2f) | %.3f (%.3f) %.2f (%.2f) \n", gamma, mean_loss1.get(num_param - 1), var_loss1.get(num_param - 1),
 								 mean_time1.get(num_param - 1), var_time1.get(num_param - 1), mean_loss2.get(num_param - 1), var_loss2.get(num_param - 1),
 								 mean_time2.get(num_param - 1), var_time2.get(num_param - 1));		
 			        }
@@ -798,9 +797,9 @@ public class Main {
   				        int number_of_instance = t1*number_of_instances_2 + t2 + 1;
   			        	System.out.println(number_of_instance);	
   				        
-  				        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all); 
+  				        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all, null, 0); 
   				       
-  				        ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
+  				        ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l, null, 0); 
   				        ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I, data_set_l, support_constraints);
   				       
   				        //ArrayList<ArrayList<Double>> data_set_f = Instance.GenerateData(I, k_f);
@@ -1010,7 +1009,7 @@ public class Main {
   				        int number_of_instance = t1*number_of_instances_2 + t2 + 1;
   			        	System.out.println(number_of_instance);	
   				        
-  				        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all); 
+  				        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all, null, 0); 
   				       			        	                      
 			  		    //Main parameter loop
   				        int num_param = 1;
@@ -1024,7 +1023,7 @@ public class Main {
 					    	     
 					    	    M1 = Math.max(I.number_of_items, 1 + epsilon_f/(1 - alpha_f));
 					    	    
-			  			        ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
+			  			        ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l, null, 0); 
 		  				        ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I, data_set_l, support_constraints);
 			           
 		  				        ArrayList<ArrayList<Double>> data_set_f = Instance.TakeSubsetColumns(data_set_l, I.number_of_items, k_f); 
@@ -1211,7 +1210,7 @@ public class Main {
   				        int number_of_instance = t1*number_of_instances_2 + t2 + 1;
   			        	System.out.println(number_of_instance);	
   				        
-  				        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all); 
+  				        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all, null, 0); 
   				       			        	                      
 			  		    //Main parameter loop
   				        int num_param = 1;
@@ -1225,7 +1224,7 @@ public class Main {
 					    	     
 					    	    M1 = Math.max(I.number_of_items, 1 + epsilon_f/(1 - alpha_f));
 					    	    
-			  			        ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
+			  			        ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l, null, 0); 
 		  				        ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I, data_set_l, support_constraints);
 			           
 		  				        ArrayList<ArrayList<Double>> data_set_f = Instance.TakeSubsetColumns(data_set_l, I.number_of_items, k_f); 
@@ -1401,7 +1400,7 @@ public class Main {
 	        const_l = 0.1; 
 	        const_f = 0.1;
 	        
-	        epsilon_l = const_l/Math.sqrt(k_f);
+	        epsilon_l = const_l/Math.sqrt(k_l);
 	        epsilon_f = const_f/Math.sqrt(k_f);
 	        
 	      
@@ -1446,10 +1445,10 @@ public class Main {
 			        int number_of_instance = t1*number_of_instances_2 + t2 + 1;
 		        	System.out.println(number_of_instance);	
 			        
-			        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all); 
+			        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all, null, 0); 
 			        	                      
-	    			ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
-	    			ArrayList<ArrayList<Double>> data_set_part_f = Instance.GenerateData(I, k_f - k_lf); 
+	    			ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l, null, 0); 
+	    			ArrayList<ArrayList<Double>> data_set_part_f = Instance.GenerateData(I, k_f - k_lf, null, 0); 
 	    			ArrayList<ArrayList<Double>> data_set_common = Instance.TakeSubsetColumns(data_set_l, I.number_of_items, k_lf); 
 	  
 	    			ArrayList<ArrayList<Double>> data_set_f_true = Instance.JoinDataSets(data_set_common, data_set_part_f, I.number_of_items);
@@ -1750,7 +1749,7 @@ public class Main {
 	        
 //***********************************************************************************	         	  	        
 	        //Experiment 7 (in-sample and out-sample analysis, sample-average leader)  
-	  	    num_of_experiment = 7;
+	  	    //num_of_experiment = 7;
 	  	    if (num_of_experiment == 7)
   	        { 
   	        	System.out.println("Experiment 7: \n");
@@ -1763,7 +1762,7 @@ public class Main {
 		        const_l = 0.; 
 		        double const_f_true = 0.1;
 		        
-		        epsilon_l = const_l/Math.sqrt(k_f);
+		        epsilon_l = const_l/Math.sqrt(k_l);
 		        double epsilon_f_true = const_f_true/Math.sqrt(k_f);
 		        
 		        double alpha_f_true = 0.95;
@@ -1814,10 +1813,10 @@ public class Main {
   				        int number_of_instance = t1*number_of_instances_2 + t2 + 1;
   			        	System.out.println(number_of_instance);	
   				        
-  				        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all); 
+  				        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all, null, 0); 
   				        	                      
-		    			ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
-		    			ArrayList<ArrayList<Double>> data_set_to_add = Instance.GenerateData(I, k_f); 
+		    			ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l, null, 0); 
+		    			ArrayList<ArrayList<Double>> data_set_to_add = Instance.GenerateData(I, k_f, null, 0); 
 		    			
 		    			ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I, data_set_l, support_constraints);
   				           
@@ -2293,7 +2292,7 @@ public class Main {
 
 //**************************************************************************************  
 	  	  //Experiment 8 (in-sample and out-sample analysis, risk-neutral leader, small epsilon_f)  //don't forget to put binary indicator = 0
-		  // num_of_experiment = 8;
+		    //num_of_experiment = 8;
 	  	    if (num_of_experiment == 8)
   	        { 
   	        	System.out.println("Experiment 8: \n");
@@ -2305,7 +2304,7 @@ public class Main {
 		        const_l = 0.1; 
 		        const_f = 0.1;
 		     
-		        epsilon_l = const_l/Math.sqrt(k_f);
+		        epsilon_l = const_l/Math.sqrt(k_l);
 		        epsilon_f = const_f/Math.sqrt(k_f);
 		        
 		        int[] sample_sizes = {0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30};
@@ -2355,10 +2354,10 @@ public class Main {
 	  				        int number_of_instance = t1*number_of_instances_2 + t2 + 1;
 	  			        	System.out.println(number_of_instance);	
 	  				         
-	  				        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all); 
+	  				        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_size_all, null, 0); 
 	  				        	                      
-			    			ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
-			    			ArrayList<ArrayList<Double>> data_set_to_add = Instance.GenerateData(I, k_f); 
+			    			ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l, null, 0); 
+			    			ArrayList<ArrayList<Double>> data_set_to_add = Instance.GenerateData(I, k_f, null, 0); 
 			    			ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I, data_set_l, support_constraints);
 	  				           
 			  				//Compute average for leader
@@ -2374,7 +2373,6 @@ public class Main {
 			  			    //Solve pessimistic formulation
 			  				double lower_bound = 0.;
 			  				double upper_bound = I.number_of_items; 
-			  				M1 = Math.max(I.number_of_items, epsilon_f/(1 - alpha_f));
 			  			    double M_objective = I.number_of_items;
 			  			    
 			  			    double start_p = System.currentTimeMillis();
@@ -2926,13 +2924,14 @@ public class Main {
 	  	    
 //***************************************************************************************
 	  	//Experiment 9 (solution times k_l, k_f)        
-	    //num_of_experiment = 9;     
+	    num_of_experiment = 9;     
         if (num_of_experiment == 9)
         { 
         	System.out.println("Experiment 9: \n");
          
 	        int[] sample_sizes = {5, 10, 15, 20, 30, 40, 50, 75, 100, 125, 150, 175, 200, 250, 300};
-	        int max_index = sample_sizes.length;
+        	//int[] sample_sizes = {50};
+        	int max_index = sample_sizes.length;
 
 	        int number_of_scenarios = 10;
         	double max_noise = 0.2;
@@ -2948,6 +2947,12 @@ public class Main {
 		        
 		        Instance I = random_instances.get(t1);
 		        
+		        Random rngData   = new Random(globalSeed + 9_000 + t1);
+		        Random rngShift  = new Random(globalSeed + 19_000 + t1);
+		        
+		        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_sizes[max_index - 1], rngData, 1); 
+		        
+		        
 		        ArrayList<ArrayList<Double>> support_constraints = Instance.ConstructSupportConstraints(I);
 		        int number_of_sc = support_constraints.size() - 1; 
 		        
@@ -2959,10 +2964,10 @@ public class Main {
   		        	shifts.add(new ArrayList<Double>());
   		        	missed.add(new ArrayList<Double>());
   		        	
-  		            for (int j = 0; j < k_f; j++)
+  		            for (int j = 0; j < sample_sizes[sample_sizes.length - 1]; j++)
   		            {
-  		            	shifts.get(i).add(ThreadLocalRandom.current().nextDouble(0, 1));
-  		            	missed.get(i).add(ThreadLocalRandom.current().nextDouble(0, 1));
+  		            	shifts.get(i).add(rngShift.nextDouble());
+  		            	missed.get(i).add(rngShift.nextDouble());
   		            }
   		        }
 		        
@@ -2988,12 +2993,13 @@ public class Main {
 		        
 		        	 
 		        	 epsilon_l = const_l/Math.sqrt(k_l);
-		        	 epsilon_f = const_l/Math.sqrt(k_l);
+		        	 epsilon_f = const_f/Math.sqrt(k_f);
 		        	 
-		        	 ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
+		        	 ArrayList<ArrayList<Double>> data_set_l = Instance.TakeSubsetColumns(data_set_all, I.number_of_items, k_l); 
+		             
 			         ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I, data_set_l, support_constraints);
 			        
-		             ArrayList<ArrayList<Double>> data_set_f = Instance.TakeSubsetColumns(data_set_l, I.number_of_items, k_f); 
+		             ArrayList<ArrayList<Double>> data_set_f = Instance.TakeSubsetColumns(data_set_all, I.number_of_items, k_f); 
 				     ArrayList<ArrayList<Double>> delta_f = Instance.TakeSubsetRows(delta_l, k_f, number_of_sc);  
 			              
 				     ArrayList<Double> average_l = new ArrayList<Double>();    
@@ -3159,12 +3165,12 @@ public class Main {
 	  
 //***************************************************************************************	        
 	    	//Experiment 10 (solution times n)        
-		    //num_of_experiment = 10;
+		    num_of_experiment = 10;
 	        if (num_of_experiment == 10)
 	        { 
 	        	System.out.println("Experiment 10: \n");
 	        	
-	        	int[] sizes = {5, 6, 7, 8, 10, 12, 14, 17, 20, 24, 28, 33, 39, 46, 50};
+	        	int[] sizes = {5, 6, 7, 8, 10, 12, 14, 17, 20, 24, 28, 32, 39, 46, 50};
 	        	//int[] sizes = {5};
 	        	int max_index = sizes.length;
 	        	
@@ -3189,7 +3195,7 @@ public class Main {
 	        	const_f = 0.1; 
 	         
 	        	epsilon_l = const_l/Math.sqrt(k_l);
-	        	epsilon_f = const_l/Math.sqrt(k_l);
+	        	epsilon_f = const_f/Math.sqrt(k_f);
 	        	
 		        Map<ArrayList<Integer>, Double> times_b = new HashMap<ArrayList<Integer>, Double>();
 		        Map<ArrayList<Integer>, Double> times_sp_5 = new HashMap<ArrayList<Integer>, Double>();
@@ -3199,14 +3205,17 @@ public class Main {
 		        {
 		        	int number_of_instance = t1 + 1;
 		        	System.out.println(number_of_instance);	
-		        
+		        	
 			        int num_param = 1;
 		        	for (int l = 0; l < max_index; l++)
 		        	{
 		        		long instanceSeed = globalRandom.nextLong();
 			        	Random random = new Random(instanceSeed);
 		        		Instance I = new Instance(sizes[l], p, d_f, w_l, w_f, 0, random); 
-			        
+			            
+		        		Random rngData  = new Random(globalSeed + 9_000 + 1_000_000L*t1 + sizes[l]);
+		        		Random rngShift = new Random(globalSeed + 19_000 + 1_000_000L*t1 + sizes[l]);
+		        		
 			            ArrayList<ArrayList<Double>> support_constraints = Instance.ConstructSupportConstraints(I);
 			            int number_of_sc = support_constraints.size() - 1; 
 			            
@@ -3220,8 +3229,8 @@ public class Main {
 		  		        	
 		  		            for (int j = 0; j < k_f; j++)
 		  		            {
-		  		            	shifts.get(i).add(ThreadLocalRandom.current().nextDouble(0, 1));
-		  		            	missed.get(i).add(ThreadLocalRandom.current().nextDouble(0, 1));
+		  		            	shifts.get(i).add(rngShift.nextDouble());
+		  		            	missed.get(i).add(rngShift.nextDouble());
 		  		            }
 		  		        }
 			            
@@ -3235,7 +3244,7 @@ public class Main {
 			            
 			            int k_lf = (int)(2./3.*k_f);
     		        	 
-    		        	ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
+    		        	ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l, rngData, 1); 
  				        ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I, data_set_l, support_constraints);
    				        
 			            ArrayList<ArrayList<Double>> data_set_f = Instance.TakeSubsetColumns(data_set_l, I.number_of_items, k_f); 
@@ -3436,8 +3445,8 @@ public class Main {
 	     
 //***************************************************************************************
 			  	 //Experiment 11 (solution times pessimistic k_l, k_f)        
-			     //num_of_experiment = 11;     
-			       if (num_of_experiment == 11)
+			     num_of_experiment = 11;     
+			     if (num_of_experiment == 11)
 			        { 
 			        	System.out.println("Experiment 11: \n");
 			         
@@ -3468,6 +3477,10 @@ public class Main {
 					        Instance I = random_instances.get(t1);
 					        Instance I_u = random_instances_u.get(t1);
 					        
+					        Random rngData   = new Random(globalSeed + 9_000 + t1);
+					        
+					        ArrayList<ArrayList<Double>> data_set_all = Instance.GenerateData(I, sample_sizes[max_index - 1], rngData, 1); 
+					        
 					        ArrayList<ArrayList<Double>> support_constraints = Instance.ConstructSupportConstraints(I);
 					        int number_of_sc = support_constraints.size() - 1; 
 					        
@@ -3489,7 +3502,7 @@ public class Main {
 					             const_l = 0.1;
 							     epsilon_l = const_l/Math.sqrt(k_l);
 					  			 
-		    		        	 ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
+		    		        	 ArrayList<ArrayList<Double>> data_set_l = Instance.TakeSubsetColumns(data_set_all, I.number_of_items, k_l);  
 		 				         
 		 				         ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I_u, data_set_l, support_constraints);
 		   				        
@@ -3628,13 +3641,13 @@ public class Main {
 			        }
 			     
 //***************************************************************************************
-			  	 //Experiment 12 (solution times pessimistic k_l, k_f)        
-			     //num_of_experiment = 12;     
-			        if (num_of_experiment == 12)
+			  	  //Experiment 12 (solution times pessimistic k_l, k_f)        
+			      num_of_experiment = 12;     
+			      if (num_of_experiment == 12)
 			        { 
 			        	System.out.println("Experiment 12: \n");
 			         
-			        	int[] sizes = {5, 6, 7, 8, 10, 12, 14, 17, 20, 24, 28, 33, 39, 46, 50};
+			        	int[] sizes = {5, 6, 7, 8, 10, 12, 14, 17, 20, 24, 28, 33, 39, 45, 50};
 			        	int max_index = sizes.length;
 				        
 			        	Map<Integer, Integer> ind1 = new HashMap<Integer, Integer>();
@@ -3663,7 +3676,7 @@ public class Main {
 				        {
 				        	int number_of_instance = t1 + 1;
 				        	System.out.println(number_of_instance);	
-				        
+				            
 					        int num_param = 1;
 				        	for (int l = 0; l < max_index; l++)
 				        	{
@@ -3671,7 +3684,9 @@ public class Main {
 					        	Random random = new Random(instanceSeed);
 				        		Instance I = new Instance(sizes[l], p, d_f, w_l, w_f, 0, random); 
 				        		Instance I_u = new Instance(sizes[l], p, w_l, w_f, random);
-					           
+					            
+				        		Random rngData  = new Random(globalSeed + 9_000 + 1_000_000L*t1 + sizes[l]);
+				        		
 				        		ArrayList<ArrayList<Double>> support_constraints = Instance.ConstructSupportConstraints(I);
 					            int number_of_sc = support_constraints.size() - 1; 
 				        
@@ -3682,7 +3697,7 @@ public class Main {
 					            System.out.println(num_param);
 					            num_param ++; 
 					        
-					            ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l); 
+					            ArrayList<ArrayList<Double>> data_set_l = Instance.GenerateData(I, k_l, rngData, 1); 
 		 				        ArrayList<ArrayList<Double>> delta_l = Instance.ComputeDelta(I_u, data_set_l, support_constraints);
 		   				        
 						        ArrayList<Double> average_l = new ArrayList<Double>();    
